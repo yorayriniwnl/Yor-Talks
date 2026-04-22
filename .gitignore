@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+*/node_modules/
+.tmp/
+
+# Environment
+.env
+backend/.env
+frontend/.env
+
+# Build outputs
+frontend/dist/
+
+# Database & uploads (created at runtime)
+backend/data/
+backend/uploads/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,21 @@
+{
+  "name": "yor-talks",
+  "version": "2.0.0",
+  "description": "Yor Talks — Billion-dollar social platform",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "install:all": "npm i --prefix backend && npm i --prefix frontend",
+    "setup":       "npm run install:all && npm run seed",
+    "seed":        "npm run seed --prefix backend",
+    "dev":         "node scripts/dev.js",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend":"npm run dev --prefix frontend",
+    "build":       "npm run build --prefix frontend",
+    "docker:up":   "docker-compose up --build -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  }
+}
