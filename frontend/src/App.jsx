@@ -6,6 +6,7 @@ import { ErrorBoundary, OfflineBanner } from "./components/Shared.jsx";
 import { Toast } from "./components/PostCard.jsx";
 import Layout                  from "./components/Layout.jsx";
 import { AuthScreen, HomeScreen, ExploreScreen, ReelsScreen, NotifsScreen, ProfileScreen, EditProfile, MessagesScreen, ChatScreen, SearchScreen, SavedScreen, ArchiveScreen, AnalyticsScreen, AdminScreen, HashtagScreen } from "./screens/AllScreens.jsx";
+import { CreatorStudioScreen, AIStudioScreen, LiveStudioScreen, LiveDiscoverScreen, ShopBrowseScreen, MonetizeScreen } from "./screens/BillionScreens.jsx";
 import PostScreen               from "./screens/PostScreen.jsx";
 import OnboardingScreen         from "./screens/OnboardingScreen.jsx";
 import SecurityScreen           from "./screens/SecurityScreen.jsx";
@@ -67,6 +68,12 @@ function AppRoutes() {
           <Route path=":username"               element={<ProfileScreen />} />
           <Route path=":username/followers"     element={<FollowersScreen type="followers" />} />
           <Route path=":username/following"     element={<FollowersScreen type="following" />} />
+          <Route path="creator-studio" element={<CreatorStudioScreen />} />
+          <Route path="ai-studio"       element={<AIStudioScreen />} />
+          <Route path="live"            element={<LiveDiscoverScreen />} />
+          <Route path="live/studio"     element={<LiveStudioScreen />} />
+          <Route path="shop"            element={<ShopBrowseScreen />} />
+          <Route path="monetize"        element={<MonetizeScreen />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

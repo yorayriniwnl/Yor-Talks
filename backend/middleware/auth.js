@@ -20,6 +20,7 @@ const auth = (req, res, next) => {
     if (!user) return res.status(401).json({ error: "User not found" });
     if (user.is_banned) return res.status(403).json({ error: "Account suspended", ban_reason: user.ban_reason });
     req.user = user;
+    req.userId = user.id;
     // Update last_seen
     db.prepare("UPDATE users SET last_seen=datetime('now') WHERE id=?").run(user.id);
     next();
@@ -35,6 +36,7 @@ const optionalAuth = (req, res, next) => {
     const payload = jwt.verify(header.slice(7), JWT_SECRET);
     if (payload.type === "access") {
       req.user = db.prepare("SELECT id,username,name,avatar,is_verified,is_admin FROM users WHERE id=?").get(payload.userId);
+      req.userId = req.user?.id;
     }
   } catch {}
   next();
@@ -45,4 +47,4 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-module.exports = { auth, optionalAuth, adminOnly, makeAccessToken, makeRefreshToken, JWT_SECRET };
+module.exports = { auth, requireAuth: auth, optionalAuth, adminOnly, makeAccessToken, makeRefreshToken, JWT_SECRET };

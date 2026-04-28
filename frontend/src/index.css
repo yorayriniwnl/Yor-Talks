@@ -140,3 +140,70 @@ input,textarea,select{font-family:var(--font)}img{display:block;max-width:100%}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 ::selection{background:rgba(0,149,246,.25);color:var(--text)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ── Billion Dollar Feature Styles ─────────────────────────────────────────── */
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.4)}}
+@keyframes live-blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+.live-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:#ef4444;color:#fff;border-radius:20px;
+  padding:3px 10px;font-size:11px;font-weight:800;letter-spacing:.5px;
+}
+.live-badge::before{
+  content:"";width:6px;height:6px;background:#fff;border-radius:50%;
+  animation:live-blink 1s ease-in-out infinite;
+}
+
+.creator-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:linear-gradient(135deg,#f59e0b,#ef4444);
+  color:#fff;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;
+}
+
+.gold-gradient{background:linear-gradient(135deg,#f59e0b,#d97706);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.money-green{color:#22c55e;font-weight:800;}
+
+.tier-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:16px;cursor:pointer;transition:border-color .2s,transform .15s;
+}
+.tier-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.tier-card.featured{border-color:#f59e0b;background:linear-gradient(135deg,#f59e0b0a,#ef44440a);}
+
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.product-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;cursor:pointer;
+  transition:transform .15s,border-color .2s;
+}
+.product-card:hover{transform:scale(1.02);border-color:var(--accent);}
+
+.earnings-bar{
+  height:8px;background:var(--border);border-radius:4px;overflow:hidden;
+}
+.earnings-bar-fill{
+  height:100%;border-radius:4px;
+  transition:width .6s cubic-bezier(.34,1.56,.64,1);
+}
+
+.ai-result{
+  background:linear-gradient(135deg,var(--surface),var(--surface2));
+  border:1px solid var(--border);border-radius:16px;padding:16px;
+  animation:toast-in .3s ease;
+}
+
+.stream-live-indicator{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
+  border-radius:20px;padding:4px 12px;color:#ef4444;font-size:12px;font-weight:700;
+}
+
+/* Creator gradient text */
+.creator-gradient{
+  background:linear-gradient(135deg,#f59e0b,#ef4444,#8b5cf6);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+/* Subscription tier glow */
+.tier-glow{box-shadow:0 0 20px rgba(245,158,11,.2);}

@@ -17,6 +17,10 @@ const { startJobs } = require("./utils/jobs");
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/posts");
 const { usersRouter, storiesRouter, messagesRouter, notifsRouter, searchRouter, adminRouter, analyticsRouter, exploreRouter } = require("./routes/misc");
+const creatorRoutes = require("./routes/creator");
+const liveRoutes    = require("./routes/live");
+const aiRoutes      = require("./routes/ai");
+const shopRoutes    = require("./routes/shop");
 const { JWT_SECRET } = require("./middleware/auth");
 
 const app  = express();
@@ -61,6 +65,10 @@ app.use("/api/search",    searchRouter);
 app.use("/api/admin",     adminRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/explore",   exploreRouter);
+app.use("/api/creator",   creatorRoutes);
+app.use("/api/live",      liveRoutes);
+app.use("/api/ai",        aiRoutes);
+app.use("/api/shop",      shopRoutes);
 
 // ── Health ────────────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => res.json({

@@ -485,6 +485,240 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_search_user       ON search_history(user_id, created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_post_tags         ON post_tags(tag);
   CREATE INDEX IF NOT EXISTS idx_reports_status    ON reports(status, created_at DESC);
+
+  -- ── CREATOR ECONOMY ─────────────────────────────────────────────────────────
+  CREATE TABLE IF NOT EXISTS creator_profiles (
+    id                   TEXT PRIMARY KEY,
+    user_id              TEXT NOT NULL UNIQUE,
+    bio                  TEXT DEFAULT '',
+    category             TEXT DEFAULT 'lifestyle',
+    payment_email        TEXT DEFAULT '',
+    youtube_url          TEXT DEFAULT '',
+    tiktok_url           TEXT DEFAULT '',
+    twitter_url          TEXT DEFAULT '',
+    verified             INTEGER DEFAULT 0,
+    total_earnings       REAL DEFAULT 0,
+    subscription_enabled INTEGER DEFAULT 1,
+    tips_enabled         INTEGER DEFAULT 1,
+    shop_enabled         INTEGER DEFAULT 0,
+    created_at           TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS subscription_tiers (
+    id               TEXT PRIMARY KEY,
+    creator_id       TEXT NOT NULL,
+    name             TEXT NOT NULL,
+    description      TEXT DEFAULT '',
+    price            REAL NOT NULL,
+    perks            TEXT DEFAULT '[]',
+    active           INTEGER DEFAULT 1,
+    subscriber_count INTEGER DEFAULT 0,
+    created_at       TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS subscriptions (
+    id            TEXT PRIMARY KEY,
+    subscriber_id TEXT NOT NULL,
+    creator_id    TEXT NOT NULL,
+    tier_id       TEXT NOT NULL,
+    status        TEXT DEFAULT 'active',
+    amount        REAL NOT NULL,
+    expires_at    TEXT,
+    cancelled_at  TEXT,
+    created_at    TEXT DEFAULT (datetime('now')),
+    UNIQUE(subscriber_id, creator_id),
+    FOREIGN KEY (subscriber_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (creator_id)    REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS tips (
+    id         TEXT PRIMARY KEY,
+    tipper_id  TEXT NOT NULL,
+    creator_id TEXT NOT NULL,
+    amount     REAL NOT NULL,
+    message    TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (tipper_id)  REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS creator_earnings (
+    id          TEXT PRIMARY KEY,
+    creator_id  TEXT NOT NULL,
+    source_type TEXT NOT NULL,
+    source_id   TEXT NOT NULL,
+    amount      REAL NOT NULL,
+    platform_fee REAL NOT NULL,
+    net_amount  REAL NOT NULL,
+    status      TEXT DEFAULT 'pending',
+    created_at  TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS payouts (
+    id            TEXT PRIMARY KEY,
+    creator_id    TEXT NOT NULL,
+    amount        REAL NOT NULL,
+    payment_email TEXT NOT NULL,
+    status        TEXT DEFAULT 'pending',
+    processed_at  TEXT,
+    created_at    TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS brands (
+    id       TEXT PRIMARY KEY,
+    name     TEXT NOT NULL,
+    logo_url TEXT DEFAULT '',
+    website  TEXT DEFAULT '',
+    verified INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS brand_deals (
+    id          TEXT PRIMARY KEY,
+    brand_id    TEXT NOT NULL,
+    creator_id  TEXT NOT NULL,
+    title       TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    amount      REAL NOT NULL,
+    deliverables TEXT DEFAULT '[]',
+    status      TEXT DEFAULT 'offered',
+    offered_at  TEXT DEFAULT (datetime('now')),
+    accepted_at TEXT,
+    created_at  TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (brand_id)   REFERENCES brands(id) ON DELETE CASCADE,
+    FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- ── LIVE STREAMING ───────────────────────────────────────────────────────────
+  CREATE TABLE IF NOT EXISTS live_sessions (
+    id               TEXT PRIMARY KEY,
+    host_id          TEXT NOT NULL,
+    title            TEXT NOT NULL,
+    category         TEXT DEFAULT 'general',
+    stream_key       TEXT UNIQUE NOT NULL,
+    status           TEXT DEFAULT 'live',
+    viewer_count     INTEGER DEFAULT 0,
+    peak_viewers     INTEGER DEFAULT 0,
+    reaction_count   INTEGER DEFAULT 0,
+    allow_guests     INTEGER DEFAULT 0,
+    duration_seconds INTEGER DEFAULT 0,
+    started_at       TEXT,
+    ended_at         TEXT,
+    created_at       TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (host_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS live_viewers (
+    id         TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    user_id    TEXT NOT NULL,
+    joined_at  TEXT DEFAULT (datetime('now')),
+    UNIQUE(session_id, user_id),
+    FOREIGN KEY (session_id) REFERENCES live_sessions(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS live_chat (
+    id         TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    user_id    TEXT NOT NULL,
+    message    TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (session_id) REFERENCES live_sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id)    REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- ── CREATOR SHOP ─────────────────────────────────────────────────────────────
+  CREATE TABLE IF NOT EXISTS creator_shops (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL UNIQUE,
+    shop_name   TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    currency    TEXT DEFAULT 'USD',
+    status      TEXT DEFAULT 'active',
+    created_at  TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS shop_products (
+    id                TEXT PRIMARY KEY,
+    shop_id           TEXT NOT NULL,
+    name              TEXT NOT NULL,
+    description       TEXT DEFAULT '',
+    price             REAL NOT NULL,
+    compare_at_price  REAL,
+    sku               TEXT,
+    inventory_count   INTEGER DEFAULT 999,
+    images            TEXT DEFAULT '[]',
+    category          TEXT DEFAULT 'other',
+    is_digital        INTEGER DEFAULT 0,
+    digital_url       TEXT,
+    status            TEXT DEFAULT 'active',
+    sales_count       INTEGER DEFAULT 0,
+    created_at        TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (shop_id) REFERENCES creator_shops(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS post_product_tags (
+    id         TEXT PRIMARY KEY,
+    post_id    TEXT NOT NULL,
+    product_id TEXT NOT NULL,
+    x_pos      REAL DEFAULT 50,
+    y_pos      REAL DEFAULT 50,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(post_id, product_id),
+    FOREIGN KEY (post_id)    REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES shop_products(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS shop_orders (
+    id               TEXT PRIMARY KEY,
+    buyer_id         TEXT NOT NULL,
+    shop_id          TEXT NOT NULL,
+    product_id       TEXT NOT NULL,
+    quantity         INTEGER DEFAULT 1,
+    total_amount     REAL NOT NULL,
+    shipping_address TEXT DEFAULT '{}',
+    tracking_number  TEXT,
+    status           TEXT DEFAULT 'pending',
+    created_at       TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (buyer_id)   REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (shop_id)    REFERENCES creator_shops(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES shop_products(id)
+  );
+
+  -- ── AI FEATURES ──────────────────────────────────────────────────────────────
+  CREATE TABLE IF NOT EXISTS ai_insights (
+    id         TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL,
+    data       TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  -- ── EXTRA INDEXES ────────────────────────────────────────────────────────────
+  CREATE INDEX IF NOT EXISTS idx_creator_earnings_user ON creator_earnings(creator_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_subscriptions_creator ON subscriptions(creator_id, status);
+  CREATE INDEX IF NOT EXISTS idx_subscriptions_sub     ON subscriptions(subscriber_id, status);
+  CREATE INDEX IF NOT EXISTS idx_live_sessions_status  ON live_sessions(status, viewer_count DESC);
+  CREATE INDEX IF NOT EXISTS idx_shop_products_shop    ON shop_products(shop_id, status);
+  CREATE INDEX IF NOT EXISTS idx_shop_orders_buyer     ON shop_orders(buyer_id, created_at DESC);
 `);
+
+function addColumnIfMissing(tableName, columnName, definition) {
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all();
+  if (columns.some((column) => column.name === columnName)) return;
+  db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
+}
+
+addColumnIfMissing("users", "is_creator", "INTEGER DEFAULT 0");
+addColumnIfMissing("users", "is_live", "INTEGER DEFAULT 0");
+addColumnIfMissing("posts", "is_exclusive", "INTEGER DEFAULT 0");
+addColumnIfMissing("posts", "is_promoted", "INTEGER DEFAULT 0");
+addColumnIfMissing("posts", "promoted_budget", "REAL DEFAULT 0");
 
 module.exports = db;
