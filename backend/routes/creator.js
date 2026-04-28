@@ -11,7 +11,7 @@ const { v4: uuidv4 } = require("uuid");
 
 // GET /api/creator/profile/:username
 router.get("/profile/:username", requireAuth, (req, res) => {
-  const user = db.prepare("SELECT id, username, name, avatar, bio, verified, followers_count, following_count FROM users WHERE username=?").get(req.params.username);
+  const user = db.prepare("SELECT id, username, name, avatar, bio, is_verified, followers_count, following_count FROM users WHERE username=?").get(req.params.username);
   if (!user) return res.status(404).json({ error: "User not found" });
 
   const creatorProfile = db.prepare("SELECT * FROM creator_profiles WHERE user_id=?").get(user.id);
@@ -134,8 +134,8 @@ router.post("/subscribe", requireAuth, (req, res) => {
 
   // Notify creator
   const sub = db.prepare("SELECT username FROM users WHERE id=?").get(req.userId);
-  db.prepare("INSERT INTO notifications (id, user_id, type, from_user_id, data, created_at) VALUES (?,?,?,?,?,datetime('now'))").run(
-    uuidv4(), creator_id, "new_subscriber", req.userId,
+  db.prepare("INSERT INTO notifications (id, user_id, actor_id, type, entity_id, entity_type, data, created_at) VALUES (?,?,?,?,?,?,?,datetime('now'))").run(
+    uuidv4(), creator_id, req.userId, "new_subscriber", id, "subscription",
     JSON.stringify({ subscriber: sub.username, tier: tier.name, amount: tier.price })
   );
 
@@ -155,7 +155,7 @@ router.delete("/subscribe/:creatorId", requireAuth, (req, res) => {
 // GET /api/creator/my-subscriptions — what I'm subscribed to
 router.get("/my-subscriptions", requireAuth, (req, res) => {
   const subs = db.prepare(`
-    SELECT s.*, u.username, u.name, u.avatar, u.verified, st.name as tier_name, st.price, st.perks
+    SELECT s.*, u.username, u.name, u.avatar, u.is_verified, st.name as tier_name, st.price, st.perks
     FROM subscriptions s
     JOIN users u ON u.id=s.creator_id
     JOIN subscription_tiers st ON st.id=s.tier_id
@@ -208,8 +208,8 @@ router.post("/tip", requireAuth, (req, res) => {
 
   // Notify
   const tipper = db.prepare("SELECT username FROM users WHERE id=?").get(req.userId);
-  db.prepare("INSERT INTO notifications (id, user_id, type, from_user_id, data, created_at) VALUES (?,?,?,?,?,datetime('now'))").run(
-    uuidv4(), creator_id, "tip_received", req.userId,
+  db.prepare("INSERT INTO notifications (id, user_id, actor_id, type, entity_id, entity_type, data, created_at) VALUES (?,?,?,?,?,?,?,datetime('now'))").run(
+    uuidv4(), creator_id, req.userId, "tip_received", id, "tip",
     JSON.stringify({ tipper: tipper.username, amount, message })
   );
 
@@ -331,8 +331,10 @@ router.get("/analytics", requireAuth, (req, res) => {
   `).all(req.userId, dateFilter);
 
   const topPosts = db.prepare(`
-    SELECT id, caption, image_url, likes_count, comments_count, saves_count, views_count, created_at
-    FROM posts WHERE user_id=? ORDER BY engagement_score DESC LIMIT 5
+    SELECT p.id, p.caption,
+      (SELECT pm.url FROM post_media pm WHERE pm.post_id = p.id ORDER BY pm.position ASC LIMIT 1) as image_url,
+      p.likes_count, p.comments_count, p.saves_count, p.views_count, p.created_at
+    FROM posts p WHERE p.user_id=? ORDER BY p.engagement_score DESC LIMIT 5
   `).all(req.userId);
 
   const audienceGender = [

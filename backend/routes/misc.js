@@ -409,7 +409,7 @@ module.exports.searchRouter = searchRouter;
 // ─── ADMIN ────────────────────────────────────────────────────────────────────
 const adminRouter = require("express").Router();
 const { adminOnly } = require("../middleware/auth");
-adminRouter.use(adminOnly);
+adminRouter.use(auth, adminOnly);
 
 adminRouter.get("/stats", (req, res) => {
   const stats = {

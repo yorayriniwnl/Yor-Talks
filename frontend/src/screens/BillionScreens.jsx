@@ -12,9 +12,11 @@ import {
   X, Edit2, Trash2, Eye, Share2, Copy, RefreshCw, ChevronDown
 } from "lucide-react";
 import { useStore } from "../store/index.js";
+import { getAccess } from "../api/index.js";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-const token = () => localStorage.getItem("access_token");
+const API_ROOT = import.meta.env.VITE_API_URL || "";
+const API = API_ROOT ? `${API_ROOT.replace(/\/$/, "")}/api` : "/api";
+const token = () => getAccess() || localStorage.getItem("yt_access");
 const apiFetch = (path, opts = {}) => fetch(`${API}${path}`, {
   ...opts,
   headers: { "Content-Type": "application/json", Authorization: `Bearer ${token()}`, ...(opts.headers || {}) }

@@ -10,7 +10,9 @@ router.get("/", auth, (req, res) => {
   // Recent likes from followed users (last 48h)
   const likes = db.prepare(`
     SELECT 'like' as type, u.id as actor_id, u.username, u.name, u.avatar, u.is_verified,
-           p.id as post_id, p.image_url, l.created_at
+           p.id as post_id,
+           (SELECT pm.url FROM post_media pm WHERE pm.post_id = p.id ORDER BY pm.position ASC LIMIT 1) as image_url,
+           l.created_at
     FROM likes l
     INNER JOIN users u ON u.id = l.user_id
     INNER JOIN posts p ON p.id = l.post_id
@@ -38,7 +40,9 @@ router.get("/", auth, (req, res) => {
   // Recent posts from followed users
   const posts = db.prepare(`
     SELECT 'post' as type, u.id as actor_id, u.username, u.name, u.avatar, u.is_verified,
-           p.id as post_id, p.image_url, p.caption, p.likes_count, p.created_at
+           p.id as post_id,
+           (SELECT pm.url FROM post_media pm WHERE pm.post_id = p.id ORDER BY pm.position ASC LIMIT 1) as image_url,
+           p.caption, p.likes_count, p.created_at
     FROM posts p
     INNER JOIN users u ON u.id = p.user_id
     INNER JOIN follows f ON f.following_id = p.user_id AND f.follower_id = ?
